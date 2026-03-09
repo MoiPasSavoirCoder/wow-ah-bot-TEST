@@ -1,0 +1,957 @@
+/* ═══════════════════════════════════════════════════
+   WoW AH Trading Bot — Global Styles
+   Design : Clean Light Dashboard 2025
+   ═══════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+// ─── Custom CSS Variables ───
+:root {
+  --surface-ground:   #f0f4f8;
+  --surface-section:  #f8fafc;
+  --surface-card:     #ffffff;
+  --surface-overlay:  #f1f5f9;
+  --surface-border:   #e2e8f0;
+  --surface-hover:    #f1f5f9;
+
+  --text-color:           #1e293b;
+  --text-color-secondary: #64748b;
+
+  // Accents
+  --accent-gold:   #d97706;
+  --accent-blue:   #2563eb;
+  --accent-green:  #059669;
+  --accent-red:    #dc2626;
+  --accent-purple: #7c3aed;
+  --accent-orange: #ea580c;
+
+  // Gradients
+  --gradient-primary: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  --gradient-gold:    linear-gradient(135deg, #d97706 0%, #dc2626 100%);
+  --gradient-green:   linear-gradient(135deg, #059669 0%, #10b981 100%);
+  --gradient-blue:    linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+  --gradient-purple:  linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+}
+
+body {
+  font-family: 'Inter', var(--font-family);
+  margin: 0;
+  padding: 0;
+  background-color: var(--surface-ground);
+  color: var(--text-color);
+  -webkit-font-smoothing: antialiased;
+}
+
+// ─── WoW Item Quality Colors ───
+.quality-COMMON    { color: #475569; }
+.quality-UNCOMMON  { color: #059669; }
+.quality-RARE      { color: #2563eb; }
+.quality-EPIC      { color: #7c3aed; }
+.quality-LEGENDARY { color: #ea580c; }
+
+// ─── Gold ───
+.gold-amount {
+  color: var(--accent-gold);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.profit-positive { color: var(--accent-green); font-weight: 700; }
+.profit-negative { color: var(--accent-red);   font-weight: 700; }
+
+// ─── Confidence ───
+.confidence-high   { color: var(--accent-green);  font-weight: 600; }
+.confidence-medium { color: var(--accent-gold);   font-weight: 600; }
+.confidence-low    { color: var(--accent-red);    font-weight: 600; }
+
+// ─── Item link ───
+.item-link {
+  color: var(--accent-blue);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+  &:hover { color: #1d4ed8; text-decoration: underline; }
+}
+
+// ─── Confidence bar ───
+.confidence-bar {
+  width: 60px;
+  height: 5px;
+  background: #e2e8f0;
+  border-radius: 99px;
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 5px;
+
+  .confidence-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.4s ease;
+    &.high   { background: var(--gradient-green); }
+    &.medium { background: var(--gradient-gold); }
+    &.low    { background: linear-gradient(90deg, #dc2626, #f87171); }
+  }
+}
+
+// ─── Page Header ───
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.page-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 0.2rem 0;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+// ─── App Layout ───
+.layout-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background: var(--surface-ground);
+}
+
+.layout-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--surface-card);
+  border-right: 1px solid var(--surface-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 999;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.06);
+}
+
+.layout-main {
+  flex: 1;
+  margin-left: 260px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.layout-topbar {
+  background: rgba(255,255,255,0.85);
+  border-bottom: 1px solid var(--surface-border);
+  padding: 0.85rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 998;
+  backdrop-filter: blur(12px);
+}
+
+.layout-content {
+  flex: 1;
+  padding: 2rem 2.25rem;
+}
+
+// ─── Sidebar Logo ───
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border-bottom: 1px solid var(--surface-border);
+
+  .logo-icon {
+    font-size: 1.6rem;
+  }
+
+  .logo-text {
+    font-size: 1rem;
+    font-weight: 800;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.02em;
+  }
+
+  .logo-realm {
+    font-size: 0.7rem;
+    color: var(--text-color-secondary);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+}
+
+// ─── Sidebar Nav ───
+.sidebar-nav {
+  padding: 1rem 0.875rem;
+  flex: 1;
+
+  .nav-section-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-color-secondary);
+    padding: 0.875rem 0.75rem 0.4rem;
+    opacity: 0.7;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.875rem;
+    border-radius: 8px;
+    color: var(--text-color-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s, transform 0.1s;
+    cursor: pointer;
+    margin-bottom: 2px;
+    position: relative;
+
+    i {
+      width: 18px;
+      text-align: center;
+      font-size: 0.95rem;
+      transition: color 0.15s;
+    }
+
+    &:hover {
+      background: var(--surface-hover);
+      color: var(--text-color);
+      transform: translateX(2px);
+    }
+
+    &.active {
+      background: linear-gradient(135deg, rgba(37,99,235,0.1), rgba(124,58,237,0.07));
+      color: var(--accent-blue);
+      font-weight: 600;
+      border: 1px solid rgba(37,99,235,0.15);
+
+      i { color: var(--accent-blue); }
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 20%;
+        height: 60%;
+        width: 3px;
+        background: var(--gradient-primary);
+        border-radius: 0 3px 3px 0;
+      }
+    }
+  }
+}
+
+// ─── Sidebar Footer ───
+.sidebar-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--surface-border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-color-secondary);
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 6px rgba(5,150,105,0.5);
+    animation: pulse-dot 2s infinite;
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px rgba(5,150,105,0.5); }
+  50%       { opacity: 0.7; box-shadow: 0 0 12px rgba(5,150,105,0.7); }
+}
+
+// ─── PrimeNG overrides ───
+
+// Cards
+:root .p-card {
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  transition: box-shadow 0.2s, transform 0.2s;
+
+  &:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+  .p-card-title { font-size: 0.95rem; font-weight: 700; color: var(--text-color); }
+}
+
+// Tables
+:root .p-datatable {
+  .p-datatable-thead > tr > th {
+    background: #f8fafc;
+    color: var(--text-color-secondary);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    border-color: var(--surface-border);
+    padding: 0.75rem 1rem;
+  }
+  .p-datatable-tbody > tr {
+    transition: background 0.12s;
+    background: #ffffff;
+    td { border-color: var(--surface-border); color: var(--text-color); }
+    &:hover td { background: #f8fafc; }
+  }
+  &.p-datatable-striped .p-datatable-tbody > tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+}
+
+// Tags
+:root .p-tag {
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  border-radius: 6px;
+  padding: 0.2rem 0.55rem;
+}
+
+// Buttons
+:root .p-button {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-radius: 8px;
+  transition: transform 0.1s, box-shadow 0.2s;
+
+  &:not(.p-button-text):not(.p-button-outlined):active {
+    transform: translateY(1px);
+  }
+}
+
+// Topbar badge
+.topbar-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(37,99,235,0.08);
+  border: 1px solid rgba(37,99,235,0.2);
+  color: var(--accent-blue);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 99px;
+
+  i { font-size: 0.75rem; }
+}
+
+// ─── Scrollbar ───
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 99px;
+  &:hover { background: #94a3b8; }
+}
+
+
+// ─── WoW Item Quality Colors ───
+.quality-COMMON    { color: #e2e8f0; }
+.quality-UNCOMMON  { color: #34d399; }
+.quality-RARE      { color: #38bdf8; }
+.quality-EPIC      { color: #a78bfa; }
+.quality-LEGENDARY { color: #fb923c; }
+
+// ─── Gold ───
+.gold-amount {
+  color: var(--accent-gold);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.profit-positive { color: var(--accent-green); font-weight: 700; }
+.profit-negative { color: var(--accent-red);   font-weight: 700; }
+
+// ─── Confidence ───
+.confidence-high   { color: var(--accent-green);  font-weight: 600; }
+.confidence-medium { color: var(--accent-gold);   font-weight: 600; }
+.confidence-low    { color: var(--accent-red);    font-weight: 600; }
+
+// ─── Item link ───
+.item-link {
+  color: var(--accent-blue);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+  &:hover { color: #7dd3fc; text-decoration: underline; }
+}
+
+// ─── Confidence bar ───
+.confidence-bar {
+  width: 60px;
+  height: 5px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 5px;
+
+  .confidence-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.4s ease;
+    &.high   { background: var(--gradient-green); }
+    &.medium { background: var(--gradient-gold); }
+    &.low    { background: linear-gradient(90deg, #ef4444, #f87171); }
+  }
+}
+
+// ─── Page Header ───
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.page-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 0.2rem 0;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+// ─── App Layout ───
+.layout-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background: var(--surface-ground);
+}
+
+.layout-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--surface-card);
+  border-right: 1px solid var(--surface-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 999;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.layout-main {
+  flex: 1;
+  margin-left: 260px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.layout-topbar {
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--surface-border);
+  padding: 0.85rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 998;
+  backdrop-filter: blur(12px);
+}
+
+.layout-content {
+  flex: 1;
+  padding: 2rem 2.25rem;
+}
+
+// ─── Sidebar Logo ───
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border-bottom: 1px solid var(--surface-border);
+
+  .logo-icon {
+    font-size: 1.6rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo-text {
+    font-size: 1rem;
+    font-weight: 800;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.02em;
+  }
+
+  .logo-realm {
+    font-size: 0.7rem;
+    color: var(--text-color-secondary);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+}
+
+// ─── Sidebar Nav ───
+.sidebar-nav {
+  padding: 1rem 0.875rem;
+  flex: 1;
+
+  .nav-section-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-color-secondary);
+    padding: 0.875rem 0.75rem 0.4rem;
+    opacity: 0.6;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.875rem;
+    border-radius: 8px;
+    color: var(--text-color-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s, transform 0.1s;
+    cursor: pointer;
+    margin-bottom: 2px;
+    position: relative;
+
+    i {
+      width: 18px;
+      text-align: center;
+      font-size: 0.95rem;
+      transition: color 0.15s;
+    }
+
+    &:hover {
+      background: rgba(255,255,255,0.05);
+      color: var(--text-color);
+      transform: translateX(2px);
+    }
+
+    &.active {
+      background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(139,92,246,0.15));
+      color: var(--accent-blue);
+      border: 1px solid rgba(59,130,246,0.25);
+
+      i { color: var(--accent-blue); }
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 20%;
+        height: 60%;
+        width: 3px;
+        background: var(--gradient-primary);
+        border-radius: 0 3px 3px 0;
+      }
+    }
+  }
+}
+
+// ─── Sidebar Footer ───
+.sidebar-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--surface-border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-color-secondary);
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 8px var(--accent-green);
+    animation: pulse-dot 2s infinite;
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--accent-green); }
+  50%       { opacity: 0.7; box-shadow: 0 0 12px var(--accent-green); }
+}
+
+// ─── PrimeNG overrides ───
+
+// Cards
+:root .p-card {
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  transition: box-shadow 0.2s;
+
+  &:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.35); }
+  .p-card-title { font-size: 0.95rem; font-weight: 700; }
+}
+
+// Tables
+:root .p-datatable {
+  .p-datatable-thead > tr > th {
+    background: var(--surface-overlay);
+    color: var(--text-color-secondary);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    border-color: var(--surface-border);
+    padding: 0.75rem 1rem;
+  }
+  .p-datatable-tbody > tr {
+    transition: background 0.12s;
+    td { border-color: var(--surface-border); }
+    &:hover td { background: rgba(255,255,255,0.03); }
+  }
+  &.p-datatable-striped .p-datatable-tbody > tr:nth-child(even) td {
+    background: rgba(255,255,255,0.018);
+  }
+}
+
+// Tags
+:root .p-tag {
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  border-radius: 6px;
+  padding: 0.2rem 0.55rem;
+}
+
+// Buttons
+:root .p-button {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-radius: 8px;
+  transition: transform 0.1s, box-shadow 0.2s;
+
+  &:not(.p-button-text):not(.p-button-outlined):active {
+    transform: translateY(1px);
+  }
+}
+
+// Topbar breadcrumb
+.topbar-route {
+  font-size: 0.85rem;
+  color: var(--text-color-secondary);
+
+  .topbar-route-current {
+    color: var(--accent-blue);
+    font-weight: 600;
+  }
+}
+
+.topbar-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(245,158,11,0.15);
+  border: 1px solid rgba(245,158,11,0.3);
+  color: var(--accent-gold);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 99px;
+
+  i { font-size: 0.75rem; }
+}
+
+// ─── Scrollbar ───
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 99px;
+  &:hover { background: rgba(255,255,255,0.2); }
+}
+
+
+// ─── WoW Quality Colors ───
+.quality-COMMON    { color: #ffffff; }
+.quality-UNCOMMON  { color: #1eff00; }
+.quality-RARE      { color: #0070dd; }
+.quality-EPIC      { color: #a335ee; }
+.quality-LEGENDARY { color: #ff8000; }
+
+// ─── Gold ───
+.gold-amount {
+  color: #f59e0b;
+  font-weight: 600;
+}
+.profit-positive { color: var(--green-400); font-weight: 600; }
+.profit-negative { color: var(--red-400); font-weight: 600; }
+
+// ─── Confidence ───
+.confidence-high   { color: var(--green-400); font-weight: 600; }
+.confidence-medium { color: var(--yellow-400); font-weight: 600; }
+.confidence-low    { color: var(--red-400); font-weight: 600; }
+
+// ─── KPI Card ───
+.kpi-card {
+  .p-card-body { padding: 1.25rem 1.5rem; }
+
+  .kpi-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .kpi-label {
+    font-size: 0.85rem;
+    color: var(--text-color-secondary);
+    margin-top: 0.25rem;
+  }
+
+  .kpi-icon {
+    font-size: 2.2rem;
+    opacity: 0.5;
+  }
+
+  &:hover {
+    .p-card { transform: translateY(-2px); }
+  }
+}
+
+// ─── Item link ───
+.item-link {
+  color: var(--primary-300);
+  text-decoration: none;
+  font-weight: 500;
+  &:hover { text-decoration: underline; color: var(--primary-200); }
+}
+
+// ─── Confidence bar ───
+.confidence-bar {
+  width: 64px;
+  height: 6px;
+  background: var(--surface-border);
+  border-radius: 3px;
+  overflow: hidden;
+
+  .confidence-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+    &.high   { background: var(--green-400); }
+    &.medium { background: var(--yellow-400); }
+    &.low    { background: var(--red-400); }
+  }
+}
+
+// ─── Page Header ───
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--surface-border);
+
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+
+    .page-header-icon {
+      margin-right: 0.5rem;
+    }
+  }
+
+  .page-subtitle {
+    color: var(--text-color-secondary);
+    font-size: 0.875rem;
+    margin-top: 0.2rem;
+  }
+}
+
+// ─── App layout ───
+.layout-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+.layout-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--surface-card);
+  border-right: 1px solid var(--surface-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 999;
+  overflow-y: auto;
+}
+
+.layout-main {
+  flex: 1;
+  margin-left: 260px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.layout-topbar {
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--surface-border);
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 998;
+}
+
+.layout-content {
+  flex: 1;
+  padding: 1.75rem 2rem;
+}
+
+// ─── Logo ───
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--surface-border);
+
+  .logo-icon { font-size: 1.75rem; }
+
+  .logo-text {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+
+  .logo-realm {
+    font-size: 0.72rem;
+    color: var(--text-color-secondary);
+  }
+}
+
+// ─── Sidebar Nav ───
+.sidebar-nav {
+  padding: 1rem 0.75rem;
+  flex: 1;
+
+  .nav-section-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-color-secondary);
+    padding: 0.75rem 0.75rem 0.35rem;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: var(--border-radius);
+    color: var(--text-color-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+    cursor: pointer;
+    margin-bottom: 2px;
+
+    i { width: 18px; text-align: center; font-size: 1rem; }
+
+    &:hover {
+      background: var(--surface-hover);
+      color: var(--text-color);
+    }
+
+    &.active {
+      background: var(--primary-color);
+      color: #fff;
+      i { color: #fff; }
+    }
+  }
+}
+
+// ─── Sidebar footer ───
+.sidebar-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--surface-border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-color-secondary);
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green-400);
+    box-shadow: 0 0 6px var(--green-400);
+  }
+}
+
+// ─── Scrollbar ───
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--surface-border);
+  border-radius: 3px;
+  &:hover { background: var(--surface-400); }
+}

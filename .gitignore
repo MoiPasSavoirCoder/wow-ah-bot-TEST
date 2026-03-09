@@ -1,0 +1,35 @@
+# Environment
+.env
+
+# Database (partout dans le projet)
+data/
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/*.db-journal
+
+# Go binary
+*.exe
+*.out
+
+# Go build cache
+backend-go/vendor/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
