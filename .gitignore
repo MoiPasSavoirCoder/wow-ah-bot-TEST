@@ -1,6 +1,12 @@
 # Environment
 .env
 
+# Ancien backend Python (remplacé par backend-go/)
+backend/
+__pycache__/
+*.py[cod]
+*.pyo
+
 # Database (partout dans le projet)
 data/
 **/*.db
