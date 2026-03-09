@@ -9,6 +9,7 @@ $SERVER      = "debian@57.128.246.255"
 $REMOTE_APP  = "/opt/wow-ah-bot"
 $REMOTE_WEB  = "/var/www/wow-ah-bot"
 $BINARY_NAME = "wow-ah-bot"
+$GO          = "C:\Program Files\Go\bin\go.exe"
 
 Write-Host "======================================" -ForegroundColor Cyan
 Write-Host "  WoW AH Bot - Déploiement VPS" -ForegroundColor Cyan
@@ -21,7 +22,7 @@ $env:GOARCH = "amd64"
 $env:CGO_ENABLED = "0"
 
 Push-Location "$PSScriptRoot\..\backend-go"
-go build -o "..\deploy\$BINARY_NAME" .\cmd\server\main.go
+& $GO build -o "..\deploy\$BINARY_NAME" .\cmd\server\main.go
 if ($LASTEXITCODE -ne 0) { Write-Host "[ERREUR] Compilation Go échouée." -ForegroundColor Red; exit 1 }
 Pop-Location
 
@@ -63,23 +64,15 @@ scp "$PSScriptRoot\wow-ah-bot.service" "${SERVER}:/tmp/wow-ah-bot.service"
 
 # ── 5. Configuration sur le serveur ─────────────────────────
 Write-Host "`n[5/5] Configuration du serveur (nginx + systemd)..." -ForegroundColor Yellow
-ssh $SERVER @"
-  # Rend le binaire exécutable
-  chmod +x $REMOTE_APP/$BINARY_NAME
 
-  # Installe le service systemd
-  sudo mv /tmp/wow-ah-bot.service /etc/systemd/system/wow-ah-bot.service
-  sudo systemctl daemon-reload
-  sudo systemctl enable wow-ah-bot
-  sudo systemctl restart wow-ah-bot
-  echo '  -> Service wow-ah-bot démarré'
-
-  # Installe la config nginx
-  sudo mv /tmp/wow-ah-bot-nginx.conf /etc/nginx/sites-available/wow-ah-bot
-  sudo ln -sf /etc/nginx/sites-available/wow-ah-bot /etc/nginx/sites-enabled/wow-ah-bot
-  sudo nginx -t && sudo systemctl reload nginx
-  echo '  -> Nginx rechargé'
-"@
+ssh $SERVER "chmod +x $REMOTE_APP/$BINARY_NAME"
+ssh $SERVER "sudo mv /tmp/wow-ah-bot.service /etc/systemd/system/wow-ah-bot.service"
+ssh $SERVER "sudo systemctl daemon-reload"
+ssh $SERVER "sudo systemctl enable wow-ah-bot"
+ssh $SERVER "sudo systemctl restart wow-ah-bot && echo '  -> Service wow-ah-bot démarré'"
+ssh $SERVER "sudo mv /tmp/wow-ah-bot-nginx.conf /etc/nginx/sites-available/wow-ah-bot"
+ssh $SERVER "sudo ln -sf /etc/nginx/sites-available/wow-ah-bot /etc/nginx/sites-enabled/wow-ah-bot"
+ssh $SERVER "sudo nginx -t && sudo systemctl reload nginx && echo '  -> Nginx rechargé'"
 
 Write-Host "`n======================================" -ForegroundColor Green
 Write-Host "  Déploiement terminé !" -ForegroundColor Green
