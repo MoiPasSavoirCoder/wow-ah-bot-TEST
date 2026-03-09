@@ -38,6 +38,11 @@ import { TooltipModule } from 'primeng/tooltip';
             <span>Opportunités</span>
           </a>
 
+          <a routerLink="/auction-house" routerLinkActive="active" class="nav-item" pRipple>
+            <i class="pi pi-shop"></i>
+            <span>Hôtel des Ventes</span>
+          </a>
+
           <a routerLink="/portfolio" routerLinkActive="active" class="nav-item" pRipple>
             <i class="pi pi-wallet"></i>
             <span>Portfolio</span>

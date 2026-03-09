@@ -134,3 +134,40 @@ export interface WowItem {
   icon_url: string | null;
   is_commodity: boolean;
 }
+
+// ─── Auction House ───
+
+export interface AuctionHouseItem {
+  item_id: number;
+  item_name: string;
+  icon_url: string;
+  quality: string;
+  item_class: string;
+  item_subclass: string;
+  level: number;
+  min_buyout: number;
+  min_buyout_gold: string;
+  avg_buyout: number;
+  avg_buyout_gold: string;
+  market_price: number;
+  market_price_gold: string;
+  total_quantity: number;
+  num_auctions: number;
+  time_left: string;
+}
+
+export interface AuctionHouseResponse {
+  items: AuctionHouseItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  snapshot_id: number;
+  scanned_at: string;
+}
+
+export interface AuctionHouseCategory {
+  name: string;
+  subcategories: { name: string; count: number }[];
+  total: number;
+}

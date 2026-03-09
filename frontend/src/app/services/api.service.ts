@@ -12,6 +12,8 @@ import {
   InventoryItem,
   PnlSummary,
   WowItem,
+  AuctionHouseResponse,
+  AuctionHouseCategory,
 } from '../models/interfaces';
 
 @Injectable({
@@ -100,6 +102,34 @@ export class ApiService {
     return this.http.get<WowItem[]>(`${this.baseUrl}/items/search`, {
       params: { q: query, limit: limit.toString() },
     });
+  }
+
+  // ─── Auction House ───
+
+  getAuctionHouse(params: {
+    search?: string;
+    category?: string;
+    subcategory?: string;
+    quality?: string;
+    sort?: string;
+    dir?: string;
+    page?: number;
+    page_size?: number;
+  } = {}): Observable<AuctionHouseResponse> {
+    let httpParams = new HttpParams();
+    if (params.search) httpParams = httpParams.set('search', params.search);
+    if (params.category) httpParams = httpParams.set('category', params.category);
+    if (params.subcategory) httpParams = httpParams.set('subcategory', params.subcategory);
+    if (params.quality) httpParams = httpParams.set('quality', params.quality);
+    if (params.sort) httpParams = httpParams.set('sort', params.sort);
+    if (params.dir) httpParams = httpParams.set('dir', params.dir);
+    if (params.page) httpParams = httpParams.set('page', params.page.toString());
+    if (params.page_size) httpParams = httpParams.set('page_size', params.page_size.toString());
+    return this.http.get<AuctionHouseResponse>(`${this.baseUrl}/auction-house`, { params: httpParams });
+  }
+
+  getAuctionHouseCategories(): Observable<AuctionHouseCategory[]> {
+    return this.http.get<AuctionHouseCategory[]>(`${this.baseUrl}/auction-house/categories`);
   }
 
   // ─── Actions ───

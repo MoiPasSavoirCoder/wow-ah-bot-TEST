@@ -17,6 +17,11 @@ export const routes: Routes = [
       import('./pages/deals/deals.component').then(m => m.DealsComponent),
   },
   {
+    path: 'auction-house',
+    loadComponent: () =>
+      import('./pages/auction-house/auction-house.component').then(m => m.AuctionHouseComponent),
+  },
+  {
     path: 'portfolio',
     loadComponent: () =>
       import('./pages/portfolio/portfolio.component').then(m => m.PortfolioComponent),

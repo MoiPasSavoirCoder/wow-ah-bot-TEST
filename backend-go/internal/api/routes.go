@@ -34,6 +34,9 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 	rg.GET("/items/search", searchItems)
 	rg.GET("/scores", getItemScores)
 	rg.GET("/scores/:itemId", getItemScoreHistory)
+	// Auction House browse
+	rg.GET("/auction-house", getAuctionHouse)
+	rg.GET("/auction-house/categories", getAuctionHouseCategories)
 	// Characters
 	rg.GET("/characters", listCharacters)
 	rg.POST("/characters", createCharacter)
@@ -475,6 +478,225 @@ func refreshAll(c *gin.Context) {
 		"deals_count":    len(deals),
 		"scanned_at":     result.ScannedAt.Format(time.RFC3339),
 	})
+}
+
+// ════════════════════════════════════════
+// Auction House Browse
+// ════════════════════════════════════════
+
+// AuctionHouseItemDTO represents one item listing on the AH (aggregated from latest snapshot).
+type AuctionHouseItemDTO struct {
+	ItemID       int    `json:"item_id"`
+	ItemName     string `json:"item_name"`
+	IconURL      string `json:"icon_url"`
+	Quality      string `json:"quality"`
+	ItemClass    string `json:"item_class"`
+	ItemSubclass string `json:"item_subclass"`
+	Level        int    `json:"level"`
+	MinBuyout    int64  `json:"min_buyout"`
+	MinBuyoutGold string `json:"min_buyout_gold"`
+	AvgBuyout    int64  `json:"avg_buyout"`
+	AvgBuyoutGold string `json:"avg_buyout_gold"`
+	MarketPrice  int64  `json:"market_price"`
+	MarketPriceGold string `json:"market_price_gold"`
+	TotalQuantity int   `json:"total_quantity"`
+	NumAuctions  int    `json:"num_auctions"`
+	TimeLeft     string `json:"time_left"`
+}
+
+func getAuctionHouse(c *gin.Context) {
+	db := database.DB
+
+	// Get latest snapshot
+	var snapshot models.AuctionSnapshot
+	if db.Order("scanned_at DESC").First(&snapshot).Error != nil {
+		c.JSON(http.StatusOK, []AuctionHouseItemDTO{})
+		return
+	}
+
+	// Params
+	search := c.Query("search")
+	category := c.Query("category")
+	subcategory := c.Query("subcategory")
+	quality := c.Query("quality")
+	sortBy := c.DefaultQuery("sort", "name")
+	sortDir := c.DefaultQuery("dir", "asc")
+	pageStr := c.DefaultQuery("page", "1")
+	pageSizeStr := c.DefaultQuery("page_size", "50")
+
+	page, _ := strconv.Atoi(pageStr)
+	if page < 1 { page = 1 }
+	pageSize, _ := strconv.Atoi(pageSizeStr)
+	if pageSize < 10 { pageSize = 10 }
+	if pageSize > 200 { pageSize = 200 }
+
+	// Aggregate from auction_entries for this snapshot, join with items table
+	type row struct {
+		ItemID       int
+		ItemName     string
+		IconURL      string
+		Quality      string
+		ItemClass    string
+		ItemSubclass string
+		Level        int
+		MinPrice     int64
+		AvgPrice     int64
+		TotalQty     int
+		NumAuctions  int
+	}
+
+	q := db.Table("auction_entries ae").
+		Select(`ae.item_id,
+			COALESCE(i.name, '') as item_name,
+			COALESCE(i.icon_url, '') as icon_url,
+			COALESCE(i.quality, '') as quality,
+			COALESCE(i.item_class, '') as item_class,
+			COALESCE(i.item_subclass, '') as item_subclass,
+			COALESCE(i.level, 0) as level,
+			MIN(COALESCE(NULLIF(ae.unit_price, 0), ae.buyout)) as min_price,
+			CAST(AVG(COALESCE(NULLIF(ae.unit_price, 0), ae.buyout)) AS INTEGER) as avg_price,
+			COALESCE(SUM(ae.quantity), 0) as total_qty,
+			COUNT(*) as num_auctions`).
+		Joins("LEFT JOIN items i ON i.id = ae.item_id").
+		Where("ae.snapshot_id = ?", snapshot.ID).
+		Group("ae.item_id")
+
+	// Filters
+	if search != "" {
+		q = q.Where("i.name LIKE ?", "%"+search+"%")
+	}
+	if category != "" {
+		q = q.Where("i.item_class = ?", category)
+	}
+	if subcategory != "" {
+		q = q.Where("i.item_subclass = ?", subcategory)
+	}
+	if quality != "" {
+		q = q.Where("i.quality = ?", quality)
+	}
+
+	// Count total for pagination
+	var total int64
+	countQ := db.Table("(?) as sub", q)
+	countQ.Count(&total)
+
+	// Sort
+	orderClause := "item_name ASC"
+	switch sortBy {
+	case "price":
+		orderClause = "min_price"
+	case "quantity":
+		orderClause = "total_qty"
+	case "level":
+		orderClause = "level"
+	case "auctions":
+		orderClause = "num_auctions"
+	default:
+		orderClause = "item_name"
+	}
+	if sortDir == "desc" {
+		orderClause += " DESC"
+	} else {
+		orderClause += " ASC"
+	}
+	q = q.Order(orderClause)
+
+	// Paginate
+	offset := (page - 1) * pageSize
+	q = q.Offset(offset).Limit(pageSize)
+
+	var rows []row
+	q.Scan(&rows)
+
+	// Build DTOs
+	items := make([]AuctionHouseItemDTO, len(rows))
+	for i, r := range rows {
+		name := r.ItemName
+		if name == "" {
+			name = fmt.Sprintf("Item #%d", r.ItemID)
+		}
+		items[i] = AuctionHouseItemDTO{
+			ItemID:        r.ItemID,
+			ItemName:      name,
+			IconURL:       r.IconURL,
+			Quality:       r.Quality,
+			ItemClass:     r.ItemClass,
+			ItemSubclass:  r.ItemSubclass,
+			Level:         r.Level,
+			MinBuyout:     r.MinPrice,
+			MinBuyoutGold: models.CopperToGoldStr(r.MinPrice),
+			AvgBuyout:     r.AvgPrice,
+			AvgBuyoutGold: models.CopperToGoldStr(r.AvgPrice),
+			MarketPrice:   r.MinPrice,
+			MarketPriceGold: models.CopperToGoldStr(r.MinPrice),
+			TotalQuantity: r.TotalQty,
+			NumAuctions:   r.NumAuctions,
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"items":       items,
+		"total":       total,
+		"page":        page,
+		"page_size":   pageSize,
+		"total_pages": (total + int64(pageSize) - 1) / int64(pageSize),
+		"snapshot_id": snapshot.ID,
+		"scanned_at":  snapshot.ScannedAt,
+	})
+}
+
+func getAuctionHouseCategories(c *gin.Context) {
+	db := database.DB
+
+	// Get latest snapshot
+	var snapshot models.AuctionSnapshot
+	if db.Order("scanned_at DESC").First(&snapshot).Error != nil {
+		c.JSON(http.StatusOK, []gin.H{})
+		return
+	}
+
+	type catRow struct {
+		ItemClass    string
+		ItemSubclass string
+		Count        int64
+	}
+	var rows []catRow
+	db.Table("auction_entries ae").
+		Select("COALESCE(i.item_class, 'Inconnu') as item_class, COALESCE(i.item_subclass, 'Autre') as item_subclass, COUNT(DISTINCT ae.item_id) as count").
+		Joins("LEFT JOIN items i ON i.id = ae.item_id").
+		Where("ae.snapshot_id = ?", snapshot.ID).
+		Group("i.item_class, i.item_subclass").
+		Order("i.item_class ASC, i.item_subclass ASC").
+		Scan(&rows)
+
+	// Build tree: { category: string, subcategories: [{name, count}], total: int }
+	type subcat struct {
+		Name  string `json:"name"`
+		Count int64  `json:"count"`
+	}
+	type category struct {
+		Name          string   `json:"name"`
+		Subcategories []subcat `json:"subcategories"`
+		Total         int64    `json:"total"`
+	}
+	catMap := make(map[string]*category)
+	var catOrder []string
+	for _, r := range rows {
+		cat, ok := catMap[r.ItemClass]
+		if !ok {
+			cat = &category{Name: r.ItemClass}
+			catMap[r.ItemClass] = cat
+			catOrder = append(catOrder, r.ItemClass)
+		}
+		cat.Subcategories = append(cat.Subcategories, subcat{Name: r.ItemSubclass, Count: r.Count})
+		cat.Total += r.Count
+	}
+
+	result := make([]category, 0, len(catOrder))
+	for _, name := range catOrder {
+		result = append(result, *catMap[name])
+	}
+	c.JSON(http.StatusOK, result)
 }
 
 // ── helper ──
