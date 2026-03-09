@@ -1,0 +1,19 @@
+[Unit]
+Description=WoW AH Bot - Backend Go
+After=network.target
+
+[Service]
+Type=simple
+User=debian
+WorkingDirectory=/opt/wow-ah-bot
+ExecStart=/opt/wow-ah-bot/wow-ah-bot
+EnvironmentFile=/opt/wow-ah-bot/.env
+Restart=on-failure
+RestartSec=5s
+
+# Logs visibles via: journalctl -u wow-ah-bot -f
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
