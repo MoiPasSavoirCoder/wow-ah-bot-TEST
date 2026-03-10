@@ -166,3 +166,47 @@ type GoldBalance struct {
 }
 
 func (GoldBalance) TableName() string { return "gold_balance" }
+
+// ════════════════════════════════════════
+// AI Trading Simulator
+// ════════════════════════════════════════
+
+// AITrade — a virtual trade made by the AI simulator.
+type AITrade struct {
+	ID               uint       `gorm:"primaryKey;autoIncrement" json:"id"`
+	ItemID           int        `gorm:"index" json:"item_id"`
+	ItemName         string     `gorm:"size:255" json:"item_name"`
+	IconURL          string     `gorm:"size:500" json:"icon_url"`
+	Action           string     `gorm:"size:10" json:"action"` // BUY
+	Quantity         int        `gorm:"default:1" json:"quantity"`
+	PricePerUnit     int64      `json:"price_per_unit"`
+	TotalCost        int64      `json:"total_cost"`
+	TargetSellPrice  int64      `json:"target_sell_price"`
+	SellPrice        int64      `gorm:"default:0" json:"sell_price"`
+	SellTotal        int64      `gorm:"default:0" json:"sell_total"`
+	ProfitCopper     int64      `gorm:"default:0" json:"profit_copper"`
+	ProfitPct        float64    `gorm:"default:0" json:"profit_pct"`
+	RentabilityIndex float64    `gorm:"default:0" json:"rentability_index"`
+	Status           string     `gorm:"size:20;default:HOLDING;index" json:"status"` // HOLDING, SOLD, EXPIRED
+	SellReason       string     `gorm:"size:30" json:"sell_reason"`                  // TARGET_PROFIT, STOP_LOSS, ABOVE_MEDIAN, EXPIRED
+	ScanID           uint       `gorm:"index" json:"scan_id"`
+	CreatedAt        time.Time  `gorm:"autoCreateTime;index" json:"created_at"`
+	SoldAt           *time.Time `json:"sold_at"`
+}
+
+func (AITrade) TableName() string { return "ai_trades" }
+
+// AIPortfolioSnapshot — periodic snapshot of the AI virtual portfolio.
+type AIPortfolioSnapshot struct {
+	ID               uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	RecordedAt       time.Time `gorm:"index;autoCreateTime" json:"recorded_at"`
+	CashCopper       int64     `gorm:"default:0" json:"cash_copper"`
+	InvestedCopper   int64     `gorm:"default:0" json:"invested_copper"`
+	TotalValueCopper int64     `gorm:"default:0" json:"total_value_copper"`
+	RealizedPnl      int64     `gorm:"default:0" json:"realized_pnl"`
+	UnrealizedPnl    int64     `gorm:"default:0" json:"unrealized_pnl"`
+	OpenPositions    int       `gorm:"default:0" json:"open_positions"`
+	TotalTrades      int       `gorm:"default:0" json:"total_trades"`
+}
+
+func (AIPortfolioSnapshot) TableName() string { return "ai_portfolio_snapshots" }

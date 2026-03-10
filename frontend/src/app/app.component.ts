@@ -48,6 +48,11 @@ import { TooltipModule } from 'primeng/tooltip';
             <span>Portfolio</span>
           </a>
 
+          <a routerLink="/ai-trading" routerLinkActive="active" class="nav-item" pRipple>
+            <i class="pi pi-android"></i>
+            <span>IA Trading</span>
+          </a>
+
           <div class="nav-section-title mt-3">Analyse</div>
 
           <a routerLink="/prices/0" routerLinkActive="active" class="nav-item" pRipple

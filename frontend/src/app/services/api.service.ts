@@ -14,6 +14,9 @@ import {
   WowItem,
   AuctionHouseResponse,
   AuctionHouseCategory,
+  AIStats,
+  AITrade,
+  AISnapshot,
 } from '../models/interfaces';
 
 @Injectable({
@@ -144,5 +147,27 @@ export class ApiService {
 
   triggerRefresh(): Observable<{ message: string; total_auctions: number; unique_items: number; deals_count: number; scanned_at: string }> {
     return this.http.post<any>(`${this.baseUrl}/refresh`, {});
+  }
+
+  // ─── AI Trading Simulator ───
+
+  getAIStats(): Observable<AIStats> {
+    return this.http.get<AIStats>(`${this.baseUrl}/ai/stats`);
+  }
+
+  getAIHoldings(): Observable<AITrade[]> {
+    return this.http.get<AITrade[]>(`${this.baseUrl}/ai/holdings`);
+  }
+
+  getAITrades(status?: string, limit = 100): Observable<AITrade[]> {
+    let params = new HttpParams().set('limit', limit.toString());
+    if (status) params = params.set('status', status);
+    return this.http.get<AITrade[]>(`${this.baseUrl}/ai/trades`, { params });
+  }
+
+  getAISnapshots(days = 30): Observable<AISnapshot[]> {
+    return this.http.get<AISnapshot[]>(`${this.baseUrl}/ai/snapshots`, {
+      params: { days: days.toString() },
+    });
   }
 }

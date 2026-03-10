@@ -45,6 +45,8 @@ func Init() {
 		&models.Character{},
 		&models.CharacterTransaction{},
 		&models.CharacterSnapshot{},
+		&models.AITrade{},
+		&models.AIPortfolioSnapshot{},
 	); err != nil {
 		log.Fatalf("❌ Auto-migrate failed: %v", err)
 	}

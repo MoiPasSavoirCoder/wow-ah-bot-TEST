@@ -171,3 +171,82 @@ export interface AuctionHouseCategory {
   subcategories: { name: string; count: number }[];
   total: number;
 }
+
+// ─── AI Trading Simulator ───
+
+export interface AITrade {
+  id: number;
+  item_id: number;
+  item_name: string;
+  icon_url: string;
+  action: string;
+  quantity: number;
+  price_per_unit: number;
+  price_per_unit_gold: string;
+  total_cost: number;
+  total_cost_gold: string;
+  target_sell_price: number;
+  target_sell_gold: string;
+  sell_price: number;
+  sell_price_gold: string;
+  sell_total: number;
+  sell_total_gold: string;
+  profit_copper: number;
+  profit_gold: string;
+  profit_pct: number;
+  rentability_index: number;
+  status: 'HOLDING' | 'SOLD' | 'EXPIRED';
+  sell_reason: string;
+  created_at: string;
+  sold_at: string | null;
+  current_price: number;
+  current_price_gold: string;
+  unrealized_pnl: number;
+  unrealized_pnl_gold: string;
+  unrealized_pnl_pct: number;
+}
+
+export interface AIStats {
+  initial_budget_copper: number;
+  initial_budget_gold: string;
+  current_cash_copper: number;
+  current_cash_gold: string;
+  invested_copper: number;
+  invested_gold: string;
+  total_value_copper: number;
+  total_value_gold: string;
+  realized_pnl_copper: number;
+  realized_pnl_gold: string;
+  unrealized_pnl_copper: number;
+  unrealized_pnl_gold: string;
+  total_pnl_copper: number;
+  total_pnl_gold: string;
+  roi_pct: number;
+  total_trades: number;
+  open_positions: number;
+  closed_trades: number;
+  winning_trades: number;
+  losing_trades: number;
+  win_rate: number;
+  avg_profit_pct: number;
+  best_trade_pnl: number;
+  best_trade_gold: string;
+  worst_trade_pnl: number;
+  worst_trade_gold: string;
+}
+
+export interface AISnapshot {
+  recorded_at: string;
+  cash_copper: number;
+  cash_gold: string;
+  invested_copper: number;
+  invested_gold: string;
+  total_value_copper: number;
+  total_value_gold: string;
+  realized_pnl: number;
+  realized_pnl_gold: string;
+  unrealized_pnl: number;
+  unrealized_pnl_gold: string;
+  open_positions: number;
+  total_trades: number;
+}

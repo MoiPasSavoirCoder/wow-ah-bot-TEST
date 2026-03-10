@@ -504,3 +504,161 @@ type CharacterTransactionAddRequest struct {
 type CharacterSnapshotAddRequest struct {
 	BalanceCopper int64 `json:"balance_copper" binding:"required"`
 }
+
+// ════════════════════════════════════════
+// AI Trading DTOs
+// ════════════════════════════════════════
+
+// AITradeDTO — a virtual trade for API response.
+type AITradeDTO struct {
+	ID               uint       `json:"id"`
+	ItemID           int        `json:"item_id"`
+	ItemName         string     `json:"item_name"`
+	IconURL          string     `json:"icon_url"`
+	Action           string     `json:"action"`
+	Quantity         int        `json:"quantity"`
+	PricePerUnit     int64      `json:"price_per_unit"`
+	PricePerUnitGold string     `json:"price_per_unit_gold"`
+	TotalCost        int64      `json:"total_cost"`
+	TotalCostGold    string     `json:"total_cost_gold"`
+	TargetSellPrice  int64      `json:"target_sell_price"`
+	TargetSellGold   string     `json:"target_sell_gold"`
+	SellPrice        int64      `json:"sell_price"`
+	SellPriceGold    string     `json:"sell_price_gold"`
+	SellTotal        int64      `json:"sell_total"`
+	SellTotalGold    string     `json:"sell_total_gold"`
+	ProfitCopper     int64      `json:"profit_copper"`
+	ProfitGold       string     `json:"profit_gold"`
+	ProfitPct        float64    `json:"profit_pct"`
+	RentabilityIndex float64    `json:"rentability_index"`
+	Status           string     `json:"status"`
+	SellReason       string     `json:"sell_reason"`
+	CreatedAt        time.Time  `json:"created_at"`
+	SoldAt           *time.Time `json:"sold_at"`
+	// Unrealized P&L for holdings
+	CurrentPrice       int64   `json:"current_price"`
+	CurrentPriceGold   string  `json:"current_price_gold"`
+	UnrealizedPnl      int64   `json:"unrealized_pnl"`
+	UnrealizedPnlGold  string  `json:"unrealized_pnl_gold"`
+	UnrealizedPnlPct   float64 `json:"unrealized_pnl_pct"`
+}
+
+func NewAITradeDTO(t AITrade, currentPrice int64) AITradeDTO {
+	name := t.ItemName
+	if name == "" {
+		name = fmt.Sprintf("Item #%d", t.ItemID)
+	}
+
+	var unrealizedPnl int64
+	var unrealizedPnlPct float64
+	if t.Status == "HOLDING" && currentPrice > 0 {
+		netTotal := currentPrice*int64(t.Quantity) - 20000 // flat 2g AH fee
+		unrealizedPnl = netTotal - t.PricePerUnit*int64(t.Quantity)
+		if t.TotalCost > 0 {
+			unrealizedPnlPct = float64(unrealizedPnl) / float64(t.TotalCost) * 100
+			unrealizedPnlPct = math.Round(unrealizedPnlPct*100) / 100
+		}
+	}
+
+	return AITradeDTO{
+		ID:                 t.ID,
+		ItemID:             t.ItemID,
+		ItemName:           name,
+		IconURL:            t.IconURL,
+		Action:             t.Action,
+		Quantity:           t.Quantity,
+		PricePerUnit:       t.PricePerUnit,
+		PricePerUnitGold:   CopperToGoldStr(t.PricePerUnit),
+		TotalCost:          t.TotalCost,
+		TotalCostGold:      CopperToGoldStr(t.TotalCost),
+		TargetSellPrice:    t.TargetSellPrice,
+		TargetSellGold:     CopperToGoldStr(t.TargetSellPrice),
+		SellPrice:          t.SellPrice,
+		SellPriceGold:      CopperToGoldStr(t.SellPrice),
+		SellTotal:          t.SellTotal,
+		SellTotalGold:      CopperToGoldStr(t.SellTotal),
+		ProfitCopper:       t.ProfitCopper,
+		ProfitGold:         CopperToGoldStr(t.ProfitCopper),
+		ProfitPct:          t.ProfitPct,
+		RentabilityIndex:   t.RentabilityIndex,
+		Status:             t.Status,
+		SellReason:         t.SellReason,
+		CreatedAt:          t.CreatedAt,
+		SoldAt:             t.SoldAt,
+		CurrentPrice:       currentPrice,
+		CurrentPriceGold:   CopperToGoldStr(currentPrice),
+		UnrealizedPnl:      unrealizedPnl,
+		UnrealizedPnlGold:  CopperToGoldStr(unrealizedPnl),
+		UnrealizedPnlPct:   unrealizedPnlPct,
+	}
+}
+
+// AIPortfolioSnapshotDTO — snapshot for API response.
+type AIPortfolioSnapshotDTO struct {
+	RecordedAt       time.Time `json:"recorded_at"`
+	CashCopper       int64     `json:"cash_copper"`
+	CashGold         string    `json:"cash_gold"`
+	InvestedCopper   int64     `json:"invested_copper"`
+	InvestedGold     string    `json:"invested_gold"`
+	TotalValueCopper int64     `json:"total_value_copper"`
+	TotalValueGold   string    `json:"total_value_gold"`
+	RealizedPnl      int64     `json:"realized_pnl"`
+	RealizedPnlGold  string    `json:"realized_pnl_gold"`
+	UnrealizedPnl    int64     `json:"unrealized_pnl"`
+	UnrealizedPnlGold string   `json:"unrealized_pnl_gold"`
+	OpenPositions    int       `json:"open_positions"`
+	TotalTrades      int       `json:"total_trades"`
+}
+
+func NewAIPortfolioSnapshotDTO(s AIPortfolioSnapshot) AIPortfolioSnapshotDTO {
+	return AIPortfolioSnapshotDTO{
+		RecordedAt:        s.RecordedAt,
+		CashCopper:        s.CashCopper,
+		CashGold:          CopperToGoldStr(s.CashCopper),
+		InvestedCopper:    s.InvestedCopper,
+		InvestedGold:      CopperToGoldStr(s.InvestedCopper),
+		TotalValueCopper:  s.TotalValueCopper,
+		TotalValueGold:    CopperToGoldStr(s.TotalValueCopper),
+		RealizedPnl:       s.RealizedPnl,
+		RealizedPnlGold:   CopperToGoldStr(s.RealizedPnl),
+		UnrealizedPnl:     s.UnrealizedPnl,
+		UnrealizedPnlGold: CopperToGoldStr(s.UnrealizedPnl),
+		OpenPositions:     s.OpenPositions,
+		TotalTrades:       s.TotalTrades,
+	}
+}
+
+// AIStatsDTO — global AI performance metrics.
+type AIStatsDTO struct {
+	// Budget
+	InitialBudgetCopper int64  `json:"initial_budget_copper"`
+	InitialBudgetGold   string `json:"initial_budget_gold"`
+	CurrentCashCopper   int64  `json:"current_cash_copper"`
+	CurrentCashGold     string `json:"current_cash_gold"`
+	InvestedCopper      int64  `json:"invested_copper"`
+	InvestedGold        string `json:"invested_gold"`
+	TotalValueCopper    int64  `json:"total_value_copper"`
+	TotalValueGold      string `json:"total_value_gold"`
+
+	// P&L
+	RealizedPnlCopper   int64   `json:"realized_pnl_copper"`
+	RealizedPnlGold     string  `json:"realized_pnl_gold"`
+	UnrealizedPnlCopper int64   `json:"unrealized_pnl_copper"`
+	UnrealizedPnlGold   string  `json:"unrealized_pnl_gold"`
+	TotalPnlCopper      int64   `json:"total_pnl_copper"`
+	TotalPnlGold        string  `json:"total_pnl_gold"`
+	ROIPct              float64 `json:"roi_pct"`
+
+	// Stats
+	TotalTrades    int     `json:"total_trades"`
+	OpenPositions  int     `json:"open_positions"`
+	ClosedTrades   int     `json:"closed_trades"`
+	WinningTrades  int     `json:"winning_trades"`
+	LosingTrades   int     `json:"losing_trades"`
+	WinRate        float64 `json:"win_rate"`
+	AvgProfitPct   float64 `json:"avg_profit_pct"`
+	BestTradePnl   int64   `json:"best_trade_pnl"`
+	BestTradeGold  string  `json:"best_trade_gold"`
+	WorstTradePnl  int64   `json:"worst_trade_pnl"`
+	WorstTradeGold string  `json:"worst_trade_gold"`
+}

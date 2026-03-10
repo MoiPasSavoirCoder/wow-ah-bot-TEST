@@ -10,6 +10,7 @@ import (
 	"wow-ah-bot/internal/database"
 	"wow-ah-bot/internal/discord"
 	"wow-ah-bot/internal/models"
+	"wow-ah-bot/internal/services/ai"
 	"wow-ah-bot/internal/services/scanner"
 	"wow-ah-bot/internal/services/trading"
 )
@@ -52,6 +53,12 @@ func scanAndAnalyze(bot *discord.Bot) {
 	if err != nil {
 		log.Printf("⚠️  Scheduled analysis failed: %v", err)
 	}
+
+	// Run AI simulator after analysis
+	if err := ai.SimulateTrades(); err != nil {
+		log.Printf("⚠️  AI simulation failed: %v", err)
+	}
+
 	duration := time.Since(start).Seconds()
 
 	// Filter unnotified deals

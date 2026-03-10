@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -17,6 +18,7 @@ import (
 	"wow-ah-bot/internal/services/portfolio"
 	"wow-ah-bot/internal/services/scanner"
 	"wow-ah-bot/internal/services/trading"
+	"wow-ah-bot/internal/services/ai"
 )
 
 // RegisterRoutes sets up all API endpoints on the given router group.
@@ -48,6 +50,11 @@ func RegisterRoutes(rg *gin.RouterGroup) {
 	rg.POST("/characters/:id/transactions", addCharacterTransaction)
 	rg.GET("/characters/:id/snapshots", getCharacterSnapshots)
 	rg.POST("/characters/:id/snapshots", addCharacterSnapshot)
+	// AI Trading Simulator
+	rg.GET("/ai/stats", getAIStats)
+	rg.GET("/ai/holdings", getAIHoldings)
+	rg.GET("/ai/trades", getAITrades)
+	rg.GET("/ai/snapshots", getAISnapshots)
 	// Actions
 	rg.POST("/scan", triggerScan)
 	rg.POST("/analyze", triggerAnalyze)
@@ -456,6 +463,12 @@ func refreshAll(c *gin.Context) {
 	if err != nil {
 		log.Printf("⚠️  Analysis error during refresh: %v", err)
 	}
+
+	// Run AI simulator
+	if err := ai.SimulateTrades(); err != nil {
+		log.Printf("⚠️  AI simulation error during refresh: %v", err)
+	}
+
 	duration := time.Since(start).Seconds()
 
 	// Count unnotified deals
@@ -911,4 +924,144 @@ func parseUintParam(c *gin.Context, name string) (uint, error) {
 		return 0, fmt.Errorf("invalid %s", name)
 	}
 	return uint(v), nil
+}
+
+// ════════════════════════════════════════
+// AI Trading Simulator
+// ════════════════════════════════════════
+
+func getAIStats(c *gin.Context) {
+	db := database.DB
+
+	// Latest snapshot
+	var snap models.AIPortfolioSnapshot
+	if err := db.Order("recorded_at DESC").First(&snap).Error; err != nil {
+		// No data yet — return empty stats
+		c.JSON(http.StatusOK, models.AIStatsDTO{
+			InitialBudgetCopper: 1000000000, // 100k gold
+			InitialBudgetGold:   models.CopperToGoldStr(1000000000),
+		})
+		return
+	}
+
+	// Closed trades stats
+	var closedTrades []models.AITrade
+	db.Where("status IN ?", []string{"SOLD", "EXPIRED"}).Find(&closedTrades)
+
+	winning := 0
+	losing := 0
+	var bestPnl, worstPnl int64
+	var totalProfitPct float64
+	for _, t := range closedTrades {
+		if t.ProfitCopper > 0 {
+			winning++
+		} else {
+			losing++
+		}
+		if t.ProfitCopper > bestPnl {
+			bestPnl = t.ProfitCopper
+		}
+		if t.ProfitCopper < worstPnl {
+			worstPnl = t.ProfitCopper
+		}
+		totalProfitPct += t.ProfitPct
+	}
+
+	winRate := 0.0
+	avgProfitPct := 0.0
+	if len(closedTrades) > 0 {
+		winRate = float64(winning) / float64(len(closedTrades)) * 100
+		avgProfitPct = totalProfitPct / float64(len(closedTrades))
+	}
+
+	totalPnl := snap.RealizedPnl + snap.UnrealizedPnl
+	roiPct := 0.0
+	if snap.TotalValueCopper > 0 {
+		roiPct = float64(totalPnl) / float64(1000000000) * 100 // vs initial budget
+	}
+
+	stats := models.AIStatsDTO{
+		InitialBudgetCopper: 1000000000,
+		InitialBudgetGold:   models.CopperToGoldStr(1000000000),
+		CurrentCashCopper:   snap.CashCopper,
+		CurrentCashGold:     models.CopperToGoldStr(snap.CashCopper),
+		InvestedCopper:      snap.InvestedCopper,
+		InvestedGold:        models.CopperToGoldStr(snap.InvestedCopper),
+		TotalValueCopper:    snap.TotalValueCopper,
+		TotalValueGold:      models.CopperToGoldStr(snap.TotalValueCopper),
+
+		RealizedPnlCopper:   snap.RealizedPnl,
+		RealizedPnlGold:     models.CopperToGoldStr(snap.RealizedPnl),
+		UnrealizedPnlCopper: snap.UnrealizedPnl,
+		UnrealizedPnlGold:   models.CopperToGoldStr(snap.UnrealizedPnl),
+		TotalPnlCopper:      totalPnl,
+		TotalPnlGold:        models.CopperToGoldStr(totalPnl),
+		ROIPct:              math.Round(roiPct*100) / 100,
+
+		TotalTrades:    snap.TotalTrades,
+		OpenPositions:  snap.OpenPositions,
+		ClosedTrades:   len(closedTrades),
+		WinningTrades:  winning,
+		LosingTrades:   losing,
+		WinRate:        math.Round(winRate*100) / 100,
+		AvgProfitPct:   math.Round(avgProfitPct*100) / 100,
+		BestTradePnl:   bestPnl,
+		BestTradeGold:  models.CopperToGoldStr(bestPnl),
+		WorstTradePnl:  worstPnl,
+		WorstTradeGold: models.CopperToGoldStr(worstPnl),
+	}
+
+	c.JSON(http.StatusOK, stats)
+}
+
+func getAIHoldings(c *gin.Context) {
+	db := database.DB
+	var holdings []models.AITrade
+	db.Where("status = ?", "HOLDING").Order("created_at DESC").Find(&holdings)
+
+	dtos := make([]models.AITradeDTO, len(holdings))
+	for i, h := range holdings {
+		currentPrice := ai.GetCurrentMinPrice(h.ItemID)
+		dtos[i] = models.NewAITradeDTO(h, currentPrice)
+	}
+	c.JSON(http.StatusOK, dtos)
+}
+
+func getAITrades(c *gin.Context) {
+	db := database.DB
+	status := c.DefaultQuery("status", "")
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
+
+	query := db.Model(&models.AITrade{}).Order("created_at DESC")
+	if status != "" {
+		query = query.Where("status = ?", strings.ToUpper(status))
+	}
+
+	var trades []models.AITrade
+	query.Limit(limit).Find(&trades)
+
+	dtos := make([]models.AITradeDTO, len(trades))
+	for i, t := range trades {
+		cp := int64(0)
+		if t.Status == "HOLDING" {
+			cp = ai.GetCurrentMinPrice(t.ItemID)
+		}
+		dtos[i] = models.NewAITradeDTO(t, cp)
+	}
+	c.JSON(http.StatusOK, dtos)
+}
+
+func getAISnapshots(c *gin.Context) {
+	db := database.DB
+	days, _ := strconv.Atoi(c.DefaultQuery("days", "30"))
+	cutoff := time.Now().UTC().AddDate(0, 0, -days)
+
+	var snapshots []models.AIPortfolioSnapshot
+	db.Where("recorded_at >= ?", cutoff).Order("recorded_at ASC").Find(&snapshots)
+
+	dtos := make([]models.AIPortfolioSnapshotDTO, len(snapshots))
+	for i, s := range snapshots {
+		dtos[i] = models.NewAIPortfolioSnapshotDTO(s)
+	}
+	c.JSON(http.StatusOK, dtos)
 }
